@@ -4,6 +4,29 @@ const cors = require('cors');  // Import CORS middleware
 const app = express();
 
 app.use(cors());  // Enable CORS for all routes
+
+// Middleware to replace curly quotes with straight quotes
+app.use((req, res, next) => {
+    if (req.is('application/json')) {
+        let rawData = '';
+        req.on('data', chunk => {
+            rawData += chunk;
+        });
+        req.on('end', () => {
+            try {
+                // Replace curly quotes with straight quotes
+                rawData = rawData.replace(/[“”]/g, '"');
+                req.body = JSON.parse(rawData); // Parse the corrected JSON
+                next(); // Proceed to the next middleware/route handler
+            } catch (err) {
+                res.status(400).json({ error: 'Invalid JSON format' });
+            }
+        });
+    } else {
+        next(); // Proceed if not a JSON request
+    }
+});
+
 app.use(bodyParser.json()); // Middleware for parsing JSON requests
 
 // POST method to handle /bfhl
