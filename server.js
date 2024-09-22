@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');  // Import CORS middleware
 const app = express();
 
+app.use(cors());  // Enable CORS for all routes
 app.use(bodyParser.json()); // Middleware for parsing JSON requests
 
 // POST method to handle /bfhl
