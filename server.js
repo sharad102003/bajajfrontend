@@ -1,15 +1,32 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors');  // Import CORS middleware
+const cors = require('cors'); // Import CORS middleware
 const app = express();
 
-app.use(cors());  // Enable CORS for all routes
-app.use(bodyParser.json()); // Middleware for parsing JSON requests
+app.use(cors()); // Enable CORS for all routes
+
+// Middleware to replace curly quotes with straight quotes
+app.use(bodyParser.text({ type: 'application/json' })); // Parse raw body as text
+
+app.use((req, res, next) => {
+    if (req.is('application/json')) {
+        try {
+            // Replace curly quotes with straight quotes
+            const correctedData = req.body.replace(/[“”]/g, '"');
+            req.body = JSON.parse(correctedData); // Parse the corrected JSON
+            next(); // Proceed to the next middleware/route handler
+        } catch (err) {
+            res.status(400).json({ error: 'Invalid JSON format' });
+        }
+    } else {
+        next(); // Proceed if not a JSON request
+    }
+});
 
 // POST method to handle /bfhl
 app.post('/bfhl', (req, res) => {
     const { data, file_b64, email, roll_number } = req.body;
-    
+
     // Separate numbers and alphabets from data
     const numbers = data.filter(item => !isNaN(item));
     const alphabets = data.filter(item => isNaN(item));
@@ -61,5 +78,5 @@ app.get('/bfhl', (req, res) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`); // Correct template literal usage
+    console.log(`Server running on port ${PORT}`);
 });
